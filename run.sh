@@ -57,6 +57,14 @@ else
   (cd target/jmeter_git; git for-each-ref --format='update %(refname) %(objectname)' 'refs/tags/' > ../../ref_map.txt)
 fi
 
+if [ ! -f target/remove_docs_api ]; then
+  echo Searching for docs/api
+  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ docs/api' | cut -d" " -f1 >> ../to-delete.txt)
+  echo Removing docs/api
+  (cd target; java -jar ../lib/bfg.jar --no-blob-protection --strip-blobs-with-ids ./to-delete.txt jmeter_git)
+  touch target/remove_docs_api
+fi
+
 (cd target/jmeter_git; git reflog expire --expire=now --all && git gc --prune=now --aggressive)
 
 du -h target/jmeter_git

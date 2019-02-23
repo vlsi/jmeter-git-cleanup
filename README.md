@@ -43,6 +43,8 @@ Output can be seen at https://github.com/vlsi/jmeter-git-cleanup-result
 
 It transfers 120 MiB (223958 objects) during clone, `.git` foder is 135MiB, total workspace size is 188MiB.
 
+When `docs/api` is removed from git, transfer size is 98 MiB (200583 objects), `.git` folder is 118 MiB, total workspace size is 171 MiB.
+
 Known issues
 ------------
 
