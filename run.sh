@@ -12,7 +12,7 @@ if [ ! -d target/jmeter_git ]; then
     echo Will use local JMeter clone
   fi
 
-  git clone $reference --no-hardlinks --mirror https://github.com/apache/jmeter.git target/jmeter_git
+  git clone $reference --dissociate --mirror https://github.com/apache/jmeter.git target/jmeter_git
 
   # Set 'origin' URL to avoid accidental push to the main repository
   (cd target/jmeter_git; git remote set-url origin https://github.com/vlsi/jmeter-git-cleanup-result.git)
@@ -38,6 +38,12 @@ if [ ! -f target/remove_at_refs ]; then
   touch target/remove_at_refs
 fi
 
+if [ ! -f target/remove_doc_branches ]; then
+  echo Removing refs with @ in name
+  (cd target/jmeter_git; git for-each-ref --format='%(refname)' | grep '/docs' | xargs -n1 git update-ref -d)
+  touch target/remove_doc_branches
+fi
+
 if [ ! -f target/remove_jars ]; then
   if [ ! -d lib ]; then
     mkdir lib
@@ -51,15 +57,26 @@ if [ ! -f target/remove_jars ]; then
 fi
 
 if [ -f ref_map.txt ]; then
-  echo Updating tags
-  (cd target/jmeter_git; cat ../../ref_map.txt | git update-ref --stdin)
+  if [ ! -f target/update_refs ]; then
+    echo Updating tags
+    (cd target/jmeter_git; cat ../../ref_map.txt | git update-ref --stdin)
+    touch target/update_refs
+  fi
 else
   (cd target/jmeter_git; git for-each-ref --format='update %(refname) %(objectname)' 'refs/tags/' > ../../ref_map.txt)
 fi
 
-if [ ! -f target/remove_docs_api ]; then
+if [ ! -f target/remove_docs ]; then
+  echo Searching for docs/
+  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ docs/' | cut -d" " -f1 > ../to-delete.txt)
+  echo Removing docs/
+  (cd target; java -jar ../lib/bfg.jar --no-blob-protection --strip-blobs-with-ids ./to-delete.txt jmeter_git)
+ touch target/remove_docs
+fi
+
+if [ -f target/remove_docs_api ]; then
   echo Searching for docs/api
-  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ docs/api' | cut -d" " -f1 >> ../to-delete.txt)
+  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ docs/api' | cut -d" " -f1 > ../to-delete.txt)
   echo Removing docs/api
   (cd target; java -jar ../lib/bfg.jar --no-blob-protection --strip-blobs-with-ids ./to-delete.txt jmeter_git)
   touch target/remove_docs_api

@@ -25,10 +25,10 @@ Expected output
 ---------------
 
 ```
-7,4M	target/jmeter_git/objects/pack
-8,0K	target/jmeter_git/objects/info
-7,4M	target/jmeter_git/objects
- 28K	target/jmeter_git/info
+ 38M	target/jmeter_git/objects/pack
+4,0K	target/jmeter_git/objects/info
+ 38M	target/jmeter_git/objects
+ 16K	target/jmeter_git/info
  48K	target/jmeter_git/hooks
   0B	target/jmeter_git/refs/heads
   0B	target/jmeter_git/refs/tags
@@ -36,7 +36,7 @@ Expected output
   0B	target/jmeter_git/refs/remotes
   0B	target/jmeter_git/refs
   0B	target/jmeter_git/branches
-7,6M	target/jmeter_git
+ 38M	target/jmeter_git
 ```
 
 Output can be seen at https://github.com/vlsi/jmeter-git-cleanup-result
