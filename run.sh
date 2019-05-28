@@ -31,10 +31,9 @@ if [ ! -f target/remove_remote_tags ]; then
   echo Removing refs/remotes/tags
   (cd target/jmeter_git; git for-each-ref --format='%(refname)' 'refs/remotes/tags/' | xargs -n1 git update-ref -d)
   # tags/test-bin has unrelated Git history and its own "Initial commit". We don't need that
-  (cd target/jmeter_git; git update-ref -d refs/tags/test)
-  (cd target/jmeter_git; git update-ref -d refs/tags/test-bin)
-  (cd target/jmeter_git; git update-ref -d refs/tags/test1157668)
-  (cd target/jmeter_git; git update-ref -d refs/tags/testhead)
+  (cd target/jmeter_git; cat ../../remove_tags | xargs -I '{}' git update-ref -d 'refs/tags/{}')
+  (cd target/jmeter_git; cat ../../remove_branches | xargs -I '{}' git update-ref -d 'refs/heads/{}')
+  (cd target/jmeter_git; cat ../../remove_branches | xargs -I '{}' git update-ref -d 'refs/remotes/{}')
 
   rm -rf target/jmeter_git/refs/tags
   touch target/remove_remote_tags
@@ -45,12 +44,6 @@ if [ ! -f target/remove_at_refs ]; then
   (cd target/jmeter_git; git for-each-ref --format='%(refname)' | grep '@' | xargs -n1 git update-ref -d)
   touch target/remove_at_refs
 fi
-
-#if [ ! -f target/remove_doc_branches ]; then
-#  echo Removing refs with @ in name
-#  (cd target/jmeter_git; git for-each-ref --format='%(refname)' | grep '/docs' | xargs -n1 git update-ref -d)
-#  touch target/remove_doc_branches
-#fi
 
 if [ ! -f target/remove_jars ]; then
   if [ ! -d lib ]; then
