@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ ! -d target ]; then
   mkdir target
@@ -57,9 +57,12 @@ if [ ! -f target/remove_docs ]; then
 fi
 
 if [ ! -f target/remove_jars ]; then
-  BINARY_LIKE=class,jar,png,gif,jtl,js,map,css,svg,odt,pdf,sxi
+  BINARY_LIKE="class|jar|png|gif|jtl|js|map|css|svg|odt|pdf|sxi"
+  (cd target/jmeter_git; git rev-list --all --objects | grep -E "\.($BINARY_LIKE)\$" | cut -d" " -f1 > ../to-delete.txt)
+  comm -23 <(sort target/to-delete.txt) <(sort keep_blobs)  > target/to-delete2.txt
   echo Removing $BINARY_LIKE which are not longer present in current branches/tags
-  (cd target; java -jar ../lib/bfg.jar --delete-files "*.{$BINARY_LIKE}" jmeter_git)
+  echo If a blob is present in current commit, then it is retained in all previous ones
+  (cd target; java -jar ../lib/bfg.jar --strip-blobs-with-ids ./to-delete2.txt jmeter_git)
   touch target/remove_jars
 fi
 
