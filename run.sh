@@ -64,51 +64,23 @@ if [ ! -f target/remove_jars ]; then
   touch target/remove_jars
 fi
 
-: <<'####.comment'
-if [ -f ref_map.txt ]; then
-  if [ ! -f target/update_refs ]; then
-    echo Updating tags
-    (cd target/jmeter_git; cat ../../ref_map.txt | git update-ref --stdin)
-    touch target/update_refs
-  fi
-else
-  (cd target/jmeter_git; git for-each-ref --format='update %(refname) %(objectname)' 'refs/tags/' > ../../ref_map.txt)
-fi
-####.comment
-
 if [ ! -f target/remove_docs ]; then
-  echo Searching for docs/
-  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ docs/' | cut -d" " -f1 > ../to-delete.txt)
-  echo Removing docs/
-  (cd target; java -jar ../lib/bfg.jar --no-blob-protection --strip-blobs-with-ids ./to-delete.txt jmeter_git)
- touch target/remove_docs
-fi
+  echo Identifying blob ids in docs/ folder
+  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ docs' | cut -d" " -f1 > ../to-delete.txt)
 
-if [ -f target/remove_docs_api ]; then
-  echo Searching for docs/api
-  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ docs/api' | cut -d" " -f1 > ../to-delete.txt)
-  echo Removing docs/api
-  (cd target; java -jar ../lib/bfg.jar --no-blob-protection --strip-blobs-with-ids ./to-delete.txt jmeter_git)
-  touch target/remove_docs_api
-fi
+  echo Removing docs folder
+  # This removes docs/ folder from all revisions (including the current one)
+  (cd target; java -jar ../lib/bfg.jar --no-blob-protection --delete-folders docs jmeter_git)
 
-: <<'####.comment'
-if [ -f target/remove_changes ]; then
-  echo Searching for xdocs/changes
-  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ xdocs/changes' | cut -d" " -f1 > ../to-delete.txt)
-  echo Removing xdocs/changes
-  (cd target; java -jar ../lib/bfg.jar --no-blob-protection --strip-blobs-with-ids ./to-delete.txt jmeter_git)
-  touch target/remove_changes
-fi
+  echo Removing old images
+  # Old repository contained "unoptimized png files", so it might make sense to remove files
+  # that are not present in the up to date branches
+  # So we get the list of ids from docs/ folder and remove those blobs, except the ones
+  # that are still referenced by current tags/branches
+  (cd target; java -jar ../lib/bfg.jar --strip-blobs-with-ids ./to-delete.txt jmeter_git)
 
-if [ -f target/remove_comp_ref ]; then
-  echo Searching for xdocs/usermanual/component_reference.xml
-  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ xdocs/usermanual/component_reference.xml' | cut -d" " -f1 > ../to-delete.txt)
-  echo Removing xdocs/usermanual/component_reference.xml
-  (cd target; java -jar ../lib/bfg.jar --no-blob-protection --strip-blobs-with-ids ./to-delete.txt jmeter_git)
-  touch target/remove_comp_ref
+  touch target/remove_docs
 fi
-####.comment
 
 (cd target/jmeter_git; git reflog expire --expire=now --all && git gc --prune=now --aggressive)
 
