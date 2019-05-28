@@ -30,10 +30,8 @@ fi
 if [ ! -f target/remove_remote_tags ]; then
   echo Removing refs/remotes/tags
   (cd target/jmeter_git; git for-each-ref --format='%(refname)' 'refs/remotes/tags/' | xargs -n1 git update-ref -d)
-  # tags/test-bin has unrelated Git history and its own "Initial commit". We don't need that
-  (cd target/jmeter_git; cat ../../remove_tags | xargs -I '{}' git update-ref -d 'refs/tags/{}')
-  (cd target/jmeter_git; cat ../../remove_branches | xargs -I '{}' git update-ref -d 'refs/heads/{}')
-  (cd target/jmeter_git; cat ../../remove_branches | xargs -I '{}' git update-ref -d 'refs/remotes/{}')
+  echo Removing all tags except v..
+  (cd target/jmeter_git; git for-each-ref --format='%(refname)' | grep -v 'refs/tags/v' | grep -v 'master' | xargs -n1 git update-ref -d)
 
   rm -rf target/jmeter_git/refs/tags
   touch target/remove_remote_tags
@@ -45,34 +43,24 @@ if [ ! -f target/remove_at_refs ]; then
   touch target/remove_at_refs
 fi
 
-if [ ! -f target/remove_jars ]; then
-  if [ ! -d lib ]; then
-    mkdir lib
-  fi
-  if [ ! -f lib/bfg.jar ]; then
-    curl -o lib/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar
-  fi
-  echo Removing jars and classes
-  (cd target; java -jar ../lib/bfg.jar --delete-files '*.{class,jar}' jmeter_git)
-  touch target/remove_jars
+if [ ! -d lib ]; then
+  mkdir lib
+fi
+if [ ! -f lib/bfg.jar ]; then
+  curl -o lib/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar
 fi
 
 if [ ! -f target/remove_docs ]; then
-  echo Identifying blob ids in docs/ folder
-  (cd target/jmeter_git; git rev-list --all --objects | grep -E '^\w+ docs' | cut -d" " -f1 > ../to-delete.txt)
-
   echo Removing docs folder
-  # This removes docs/ folder from all revisions (including the current one)
   (cd target; java -jar ../lib/bfg.jar --no-blob-protection --delete-folders docs jmeter_git)
-
-  echo Removing old images
-  # Old repository contained "unoptimized png files", so it might make sense to remove files
-  # that are not present in the up to date branches
-  # So we get the list of ids from docs/ folder and remove those blobs, except the ones
-  # that are still referenced by current tags/branches
-  (cd target; java -jar ../lib/bfg.jar --strip-blobs-with-ids ./to-delete.txt jmeter_git)
-
   touch target/remove_docs
+fi
+
+if [ ! -f target/remove_jars ]; then
+  BINARY_LIKE=class,jar,png,gif,jtl,js,map,css,svg,odt,pdf,sxi
+  echo Removing $BINARY_LIKE which are not longer present in current branches/tags
+  (cd target; java -jar ../lib/bfg.jar --delete-files "*.{$BINARY_LIKE}" jmeter_git)
+  touch target/remove_jars
 fi
 
 (cd target/jmeter_git; git reflog expire --expire=now --all && git gc --prune=now --aggressive)
