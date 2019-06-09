@@ -1,0 +1,3 @@
+#!/bin/sh
+
+pngquant -f --skip-if-larger --out $BFG_OUTPUT $BFG_INPUT
