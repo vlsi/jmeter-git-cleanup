@@ -9,8 +9,13 @@ License
 Apache License 2.0
 
 
-Usage
------
+Cleanup of Apache JMeter fork repository
+----------------------------------------
+
+See `clean_fork` folder
+
+Usage (development of cleaning script
+-------------------------------------
 
     ./run.sh
 
