@@ -18,7 +18,6 @@ if [ ! -d target/jmeter_git ]; then
   (cd target/jmeter_git; git remote set-url origin https://github.com/vlsi/jmeter-git-cleanup-result.git)
   # Rename trunk -> master
   (cd target/jmeter_git; git branch -m trunk master)
-  (cd target/jmeter_git; git branch gradle refs/pull/448/head)
 fi
 
 if [ ! -f target/remove_pull ]; then
@@ -31,8 +30,9 @@ fi
 if [ ! -f target/remove_remote_tags ]; then
   echo Removing refs/remotes/tags
   (cd target/jmeter_git; git for-each-ref --format='%(refname)' 'refs/remotes/tags/' | xargs -n1 git update-ref -d)
+  (cd target/jmeter_git; git for-each-ref --format='%(refname)' 'refs/tags/' | grep RC | xargs -n1 git update-ref -d)
   echo Removing all tags except v..
-  (cd target/jmeter_git; git for-each-ref --format='%(refname)' | grep -v 'refs/tags/v' | grep -v master | grep -v gradle | xargs -n1 git update-ref -d)
+  (cd target/jmeter_git; git for-each-ref --format='%(refname)' | grep -v 'refs/tags/v' | grep -v master | xargs -n1 git update-ref -d)
 
   rm -rf target/jmeter_git/refs/tags
   touch target/remove_remote_tags
