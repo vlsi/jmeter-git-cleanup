@@ -14,7 +14,7 @@ git branch -m trunk master
 
 BFG="java -jar bfg-1.13.2-vlsi-master-44b5b85.jar"
 
-$BFG --no-private --no-blob-protection '--blob-exec:command=./pngoptimizer,filemask=.png$,keepinput=false,cacheonly=true,minsizereduction=20' --strip-blobs-with-ids deleted-blob-ids.txt --delete-folders docs
+$BFG --no-private --no-blob-protection '--blob-exec:command=./pngoptimizer,filemask=.png$,keepinput=false,cacheonly=false,minsizereduction=0' --strip-blobs-with-ids deleted-blob-ids.txt --delete-folders docs
 
 # This is to revert "local" changes (e.g. replace local .png files with the ones after BFG)
 git reset --hard

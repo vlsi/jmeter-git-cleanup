@@ -1,3 +1,20 @@
 #!/bin/sh
 
+# HTMLParserTestFile_2_files relies on the image size for tests :(
+if [ "$BFG_FILENAME" = "http-config-example.png" ]; then
+  exit 42
+fi
+if [ "$BFG_FILENAME" = "scoping1.png" ]; then
+  exit 42
+fi
+if [ "$BFG_FILENAME" = "scoping2.png" ]; then
+  exit 42
+fi
+if [ "$BFG_FILENAME" = "scoping3.png" ]; then
+  exit 42
+fi
+if [ "$BFG_FILENAME" = "2011-na-234x60.png" ]; then
+  exit 42
+fi
+
 pngquant -f --skip-if-larger --out $BFG_OUTPUT $BFG_INPUT
