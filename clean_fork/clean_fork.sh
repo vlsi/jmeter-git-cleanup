@@ -12,9 +12,16 @@ git branch -m trunk master
 
 # See https://github.com/vlsi/bfg-repo-cleaner/releases
 
-BFG="java -jar bfg-1.13.2-vlsi-master-44b5b85.jar"
+BFG="java -jar bfg-v1.14.0-vlsi-8885d69.jar"
 
-$BFG --no-private --no-blob-protection '--blob-exec:command=./pngoptimizer,filemask=.png$,keepinput=false,cacheonly=true,minsizereduction=0' --strip-blobs-with-ids deleted-blob-ids.txt --delete-folders docs
+
+# There are two style.css file in the repository: testdata/.../style.css should be CRLF, and xdocs/.../style.css should be LF
+# For now we just keep style.css "as is" (it is excluded from the first processing, and it is NOT included into the second one)
+
+$BFG --no-private --no-blob-protection '--blob-exec:command=./pngoptimizer,filemask=.png$,keepinput=false,cacheonly=true,minsizereduction=20' \
+  --filter-eol 'eol=lf,exclude=(style.css|halfbanner.htm|HTMLParserTestFile_2.html|(\\.(cmd|bat)))$' \
+  --filter-eol 'eol=crlf,include=(halfbanner.htm|HTMLParserTestFile_2.html|(\\.(cmd|bat)))$' \
+  --strip-blobs-with-ids deleted-blob-ids.txt --delete-folders docs
 
 # This is to revert "local" changes (e.g. replace local .png files with the ones after BFG)
 git reset --hard
